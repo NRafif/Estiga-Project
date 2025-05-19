@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Hubungi Kami - Estimasi Gadai{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Form Kontak -->
+        <div class="col-md-8">
+            <h2 class="mb-4">Hubungi Kami</h2>
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="nama" class="form-label">Nama Lengkap</label>
+                            <input type="text" class="form-control" id="nama" name="nama" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="subjek" class="form-label">Subjek</label>
+                            <select class="form-select" id="subjek" name="subjek" required>
+                                <option value="">Pilih Subjek</option>
+                                <option value="info">Informasi Umum</option>
+                                <option value="appointment">Buat Janji Temu</option>
+                                <option value="complaint">Keluhan</option>
+                                <option value="other">Lainnya</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="pesan" class="form-label">Pesan</label>
+                            <textarea class="form-control" id="pesan" name="pesan" rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>Kirim Pesan
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informasi Kontak -->
+        <div class="col-md-4">
+            <h2 class="mb-4">Informasi Kantor</h2>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Kantor Pusat</h5>
+                    <address class="mb-4">
+                        <i class="fas fa-map-marker-alt me-2"></i>Jl. Contoh No. 123<br>
+                        Jakarta Pusat, 10110<br>
+                        Indonesia
+                    </address>
+
+                    <h5 class="card-title">Kontak</h5>
+                    <ul class="list-unstyled mb-4">
+                        <li class="mb-2">
+                            <i class="fas fa-phone me-2"></i>
+                            <a href="tel:+62211234567" class="text-decoration-none">(021) 1234567</a>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-envelope me-2"></i>
+                            <a href="mailto:kontak@estimasigadai.com" class="text-decoration-none">kontak@estimasigadai.com</a>
+                        </li>
+                        <li>
+                            <i class="fas fa-clock me-2"></i>Senin-Jumat: 08.00-16.00 WIB
+                        </li>
+                    </ul>
+
+                    <h5 class="card-title">Media Sosial</h5>
+                    <div class="social-links">
+                        <a href="#" class="btn btn-outline-primary me-2">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-info me-2">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-danger me-2">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-success">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

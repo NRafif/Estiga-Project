@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Riwayat Estimasi{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">Riwayat Estimasi</h2>
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tanggal</th>
+                    <th>Nama Pemohon</th>
+                    <th>Merk & Tipe HP</th>
+                    <th>Spesifikasi</th>
+                    <th>Estimasi</th>
+                    <th>Status</th>
+                    {% if session.role == 'admin' %}
+                    <th>Catatan</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for gadai in daftar_gadai %}
+                <tr>
+                    <td>{{ gadai.id }}</td>
+                    <td>{{ gadai.tanggal_gadai.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ gadai.nama_pemohon }}</td>
+                    <td>{{ gadai.merk_hp }} {{ gadai.tipe_hp }}</td>
+                    <td>
+                        RAM: {{ gadai.ram }}GB<br>
+                        Storage: {{ gadai.penyimpanan }}GB<br>
+                        Tahun: {{ gadai.tahun_keluaran }}<br>
+                        Kondisi: {{ gadai.kondisi }}
+                    </td>
+                    <td>Rp {{ "{:,.0f}".format(gadai.estimasi_pinjaman) }}</td>
+                    <td>
+                        {% if gadai.status == 'pending' %}
+                        <span class="badge bg-warning">Menunggu</span>
+                        {% elif gadai.status == 'verified' %}
+                        <span class="badge bg-success">Disetujui</span>
+                        {% else %}
+                        <span class="badge bg-danger">Ditolak</span>
+                        {% endif %}
+                    </td>
+                    {% if session.role == 'admin' %}
+                    <td>
+                        {% if gadai.catatan_verifikasi %}
+                        {{ gadai.catatan_verifikasi }}
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+.badge {
+    font-size: 0.875rem;
+    padding: 0.5em 1em;
+}
+.table td {
+    vertical-align: middle;
+}
+</style>
+{% endblock %} 

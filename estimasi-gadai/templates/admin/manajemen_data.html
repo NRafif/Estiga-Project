@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Manajemen Data Barang - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">Manajemen Data Barang Referensi</h2>
+
+    <!-- Tombol Tambah Data, Export, dan Import -->
+    <div class="mb-4 d-flex gap-2">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahBarangModal">
+            <i class="fas fa-plus"></i> Tambah Data Barang
+        </button>
+        <a href="/admin/manajemen/export_excel" class="btn btn-success">
+            <i class="fas fa-file-excel"></i> Export ke Excel
+        </a>
+        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#importExcelModal">
+            <i class="fas fa-upload"></i> Import dari Excel
+        </button>
+    </div>
+
+    <!-- Tabel Data Barang -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Merk</th>
+                            <th>Tipe</th>
+                            <th>RAM (GB)</th>
+                            <th>Penyimpanan (GB)</th>
+                            <th>Tahun Rilis</th>
+                            <th>Harga Pasar (Rp)</th>
+                            <th>Terakhir Update</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for barang in data_barang %}
+                        <tr data-id="{{ barang.id }}">
+                            <td>{{ barang.id }}</td>
+                            <td>{{ barang.merk }}</td>
+                            <td>{{ barang.tipe }}</td>
+                            <td>{{ barang.ram }}</td>
+                            <td>{{ barang.penyimpanan }}</td>
+                            <td>{{ barang.tahun_rilis }}</td>
+                            <td>{{ "{:,.0f}".format(barang.harga_pasar) }}</td>
+                            <td>{{ barang.updated_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-info btn-edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger btn-delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Tambah/Edit Barang -->
+<div class="modal fade" id="tambahBarangModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Tambah Data Barang</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formBarang" method="POST">
+                    <input type="hidden" id="barangId" name="id">
+                    <div class="mb-3">
+                        <label for="merk" class="form-label">Merk</label>
+                        <input type="text" class="form-control" id="merk" name="merk" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tipe" class="form-label">Tipe</label>
+                        <input type="text" class="form-control" id="tipe" name="tipe" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ram" class="form-label">RAM (GB)</label>
+                        <input type="number" class="form-control" id="ram" name="ram" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="penyimpanan" class="form-label">Penyimpanan (GB)</label>
+                        <input type="number" class="form-control" id="penyimpanan" name="penyimpanan" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tahunRilis" class="form-label">Tahun Rilis</label>
+                        <input type="number" class="form-control" id="tahunRilis" name="tahun_rilis" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="hargaPasar" class="form-label">Harga Pasar (Rp)</label>
+                        <input type="number" class="form-control" id="hargaPasar" name="harga_pasar" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" id="btnSimpan">Simpan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Import Excel -->
+<div class="modal fade" id="importExcelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="formImportExcel" method="POST" enctype="multipart/form-data" action="/admin/manajemen/import_excel">
+                <div class="modal-header">
+                    <h5 class="modal-title">Import Data Barang dari Excel</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="fileExcel" class="form-label">Pilih File Excel (.xlsx)</label>
+                        <input type="file" class="form-control" id="fileExcel" name="file_excel" accept=".xlsx" required>
+                        <div class="form-text">Format kolom: Merk HP, Tipe HP, RAM (GB), Penyimpanan (GB), Tahun Keluaran, Nilai Gadai</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning">Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Script untuk manajemen data -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Event delegation untuk tombol edit
+    document.querySelector('table').addEventListener('click', function(e) {
+        const target = e.target.closest('button');
+        if (!target) return;
+        
+        const row = target.closest('tr');
+        const id = row.dataset.id;
+        
+        if (target.classList.contains('btn-edit')) {
+            editBarang(id);
+        } else if (target.classList.contains('btn-delete')) {
+            hapusBarang(id);
+        }
+    });
+    
+    // Event listener untuk tombol simpan
+    document.getElementById('btnSimpan').addEventListener('click', simpanBarang);
+});
+
+function editBarang(id) {
+    fetch(`/admin/manajemen/get_barang/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('barangId').value = data.id;
+            document.getElementById('merk').value = data.merk;
+            document.getElementById('tipe').value = data.tipe;
+            document.getElementById('ram').value = data.ram;
+            document.getElementById('penyimpanan').value = data.penyimpanan;
+            document.getElementById('tahunRilis').value = data.tahun_rilis;
+            document.getElementById('hargaPasar').value = data.harga_pasar;
+            
+            document.getElementById('modalTitle').textContent = 'Edit Data Barang';
+            new bootstrap.Modal(document.getElementById('tambahBarangModal')).show();
+        });
+}
+
+function hapusBarang(id) {
+    if (confirm('Apakah Anda yakin ingin menghapus data barang ini?')) {
+        fetch(`/admin/manajemen/hapus/${id}`, { method: 'DELETE' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Gagal menghapus data barang');
+                }
+            });
+    }
+}
+
+function simpanBarang() {
+    const form = document.getElementById('formBarang');
+    const formData = new FormData(form);
+    const id = formData.get('id');
+    const url = id ? `/admin/manajemen/update/${id}` : '/admin/manajemen/tambah';
+    
+    fetch(url, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Gagal menyimpan data barang');
+        }
+    });
+}
+</script>
+{% endblock %} 

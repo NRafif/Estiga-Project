@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Profil - Estimasi Gadai{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-4">
+            <!-- Kartu Profil -->
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <img src="{{ url_for('static', filename='image.png') }}"
+                         alt="Profile"
+                         class="rounded-circle mb-3"
+                         style="width: 150px; height: 150px; object-fit: cover;">
+                    <h4>{{ user.nama_lengkap }}</h4>
+                    <p class="text-muted mb-1">{{ user.username }}</p>
+                    <p class="text-muted mb-4">Role: {{ user.role }}</p>
+                </div>
+            </div>
+
+            <!-- Menu Cepat -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Menu Cepat</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <a href="{{ url_for('estimasi') }}" class="text-decoration-none">
+                                <i class="fas fa-calculator me-2"></i>Buat Estimasi Baru
+                            </a>
+                        </li>
+                        <li class="list-group-item">
+                            <a href="{{ url_for('riwayat') }}" class="text-decoration-none">
+                                <i class="fas fa-history me-2"></i>Lihat Riwayat
+                            </a>
+                        </li>
+                        <li class="list-group-item">
+                            <a href="{{ url_for('ubah_password') }}" class="text-decoration-none">
+                                <i class="fas fa-key me-2"></i>Ubah Password
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <!-- Informasi Profil -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Informasi Profil</h5>
+                    <form method="POST" action="{{ url_for('profil') }}">
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" class="form-control" value="{{ user.username }}" readonly>
+                            <small class="text-muted">Username tidak dapat diubah</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nama_lengkap" class="form-label">Nama Lengkap</label>
+                            <input type="text" class="form-control" id="nama_lengkap" name="nama_lengkap" 
+                                   value="{{ user.nama_lengkap }}" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Simpan Perubahan
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Statistik Aktivitas -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Statistik Aktivitas</h5>
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <div class="text-center mb-3">
+                                <h6 class="text-muted">Total Estimasi</h6>
+                                <h2>{{ total_estimasi }}</h2>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="text-center mb-3">
+                                <h6 class="text-muted">Bulan Ini</h6>
+                                <h2>{{ estimasi_bulan_ini }}</h2>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="text-center mb-3">
+                                <h6 class="text-muted">Dalam Proses</h6>
+                                <h2>{{ estimasi_proses }}</h2>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="text-center mb-3">
+                                <h6 class="text-muted">Status</h6>
+                                <div class="d-flex justify-content-around">
+                                    <span class="badge bg-warning">{{ status_stats.pending }}</span>
+                                    <span class="badge bg-success">{{ status_stats.verified }}</span>
+                                    <span class="badge bg-danger">{{ status_stats.rejected }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estimasi Terbaru -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Estimasi Terbaru</h5>
+                    {% if estimasi_terbaru %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Merk</th>
+                                    <th>Tipe</th>
+                                    <th>Estimasi</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for estimasi in estimasi_terbaru %}
+                                <tr>
+                                    <td>{{ estimasi.tanggal_gadai.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ estimasi.merk_hp }}</td>
+                                    <td>{{ estimasi.tipe_hp }}</td>
+                                    <td>Rp {{ "{:,.0f}".format(estimasi.estimasi_pinjaman) }}</td>
+                                    <td>
+                                        {% if estimasi.status == 'pending' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                        {% elif estimasi.status == 'verified' %}
+                                        <span class="badge bg-success">Disetujui</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">Ditolak</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">Belum ada estimasi</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

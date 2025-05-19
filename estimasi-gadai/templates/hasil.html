@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+
+{% block title %}Hasil Estimasi - Sistem Estimasi Gadai{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <!-- Header utama dengan warna navbar -->
+        <div class="header-section">
+            <h4 class="mb-0 text-white">Hasil Estimasi Gadai</h4>
+        </div>
+        
+        <div class="card-body">
+            <div class="row g-4">
+                <!-- Detail Handphone -->
+                <div class="col-md-6">
+                    <div class="content-section">
+                        <div class="section-header">
+                            <h5 class="mb-0 text-white">Detail Handphone</h5>
+                        </div>
+                        <div class="content-body p-3">
+                            <table class="table table-borderless mb-0">
+                                <tr>
+                                    <td style="width: 40%"><strong>Merk</strong></td>
+                                    <td>: {{ gadai.merk_hp }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tipe</strong></td>
+                                    <td>: {{ gadai.tipe_hp }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>RAM</strong></td>
+                                    <td>: {{ gadai.ram }} GB</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Penyimpanan</strong></td>
+                                    <td>: {{ gadai.penyimpanan }} GB</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tahun Keluaran</strong></td>
+                                    <td>: {{ gadai.tahun_keluaran }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Kondisi</strong></td>
+                                    <td>: {{ gadai.kondisi }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hasil Estimasi -->
+                <div class="col-md-6">
+                    <div class="content-section">
+                        <div class="section-header">
+                            <h5 class="mb-0 text-white">Hasil Estimasi</h5>
+                        </div>
+                        <div class="content-body p-3">
+                            <!-- Info box dengan style yang konsisten -->
+                            {% if gadai.is_from_history == false %}
+                            <div class="info-box mb-3">
+                                <div class="info-content">
+                                    <i class="fas fa-info-circle text-primary me-2"></i>
+                                    <span>Tipe HP tidak ditemukan di data kami. Estimasi diberikan berdasarkan kategori HP dengan spesifikasi serupa.</span>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <div class="estimasi-box">
+                                {% if gadai.estimasi_minimum is not none and gadai.estimasi_maximum is not none %}
+                                    <h5 class="estimasi-title">Rentang Estimasi Pinjaman:</h5>
+                                    <div class="estimasi-value">
+                                        <h3 class="text-primary fw-bold mb-2">
+                                            Rp {{ "{:,.0f}".format(gadai.estimasi_minimum) }} - Rp {{ "{:,.0f}".format(gadai.estimasi_maximum) }}
+                                        </h3>
+                                        <p class="text-muted mb-0">Nilai tengah: Rp {{ "{:,.0f}".format(gadai.estimasi_pinjaman) }}</p>
+                                    </div>
+                                {% else %}
+                                    <h5 class="estimasi-title">Estimasi Pinjaman:</h5>
+                                    <div class="estimasi-value">
+                                        <h3 class="text-primary fw-bold">
+                                            Rp {{ "{:,.0f}".format(gadai.estimasi_pinjaman) }}
+                                        </h3>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Warning Message dengan style yang konsisten -->
+            <div class="warning-box mt-4">
+                <div class="warning-content">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    <span>Estimasi ini hanya perkiraan awal. Nilai final akan ditentukan setelah verifikasi fisik oleh petugas.</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-end mt-4">
+                <a href="{{ url_for('estimasi') }}" class="btn btn-secondary me-2">
+                    <i class="fas fa-arrow-left me-2"></i>Kembali
+                </a>
+                <button type="button" class="btn btn-info me-2" onclick="window.print()">
+                    <i class="fas fa-print me-2"></i>Cetak
+                </button>
+                <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#qrModal">
+                    <i class="fas fa-qrcode me-2"></i>QR Code
+                </button>
+                <button type="button" class="btn btn-primary" id="btnSimpan" onclick="simpanEstimasi()">
+                    <i class="fas fa-save me-2"></i>Ajukan Estimasi
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal QR Code -->
+<div class="modal fade" id="qrModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">QR Code Estimasi</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div id="qrcode" class="mb-3"></div>
+                <p class="mb-0">Scan QR code untuk melihat detail estimasi</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sukses -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Sukses</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                <h5>Data Estimasi Berhasil Disimpan</h5>
+                <p class="mb-0">Silahkan menunggu persetujuan dari admin.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<script>
+function formatCurrency(number) {
+    return new Intl.NumberFormat('id-ID').format(number);
+}
+
+async function simpanEstimasi() {
+    try {
+        const data = {
+            nama: '{{ gadai.nama_pemohon }}'.trim(),
+            merk: '{{ gadai.merk_hp }}'.trim(),
+            tipe: '{{ gadai.tipe_hp }}'.trim(),
+            ram: '{{ gadai.ram }}'.trim(),
+            penyimpanan: '{{ gadai.penyimpanan }}'.trim(),
+            tahun: '{{ gadai.tahun_keluaran }}'.trim(),
+            harga_beli: '{{ "{:.0f}".format(gadai.harga_beli) }}'.replace(/\D/g, ''),
+            kondisi: '{{ gadai.kondisi }}'.trim(),
+            estimasi_pinjaman: '{{ "{:.0f}".format(gadai.estimasi_pinjaman) }}'.trim()
+        };
+
+        const response = await fetch('{{ url_for("simpan_estimasi") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+            // Tampilkan modal sukses
+            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+            successModal.show();
+            
+            // Nonaktifkan tombol simpan
+            const btnSimpan = document.getElementById('btnSimpan');
+            btnSimpan.disabled = true;
+            btnSimpan.innerHTML = '<i class="fas fa-check me-2"></i>Estimasi Terkirim';
+        } else {
+            alert('Gagal menyimpan data: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
+    }
+}
+
+// Generate QR Code
+document.addEventListener('DOMContentLoaded', function() {
+    const qr = qrcode(0, 'M');
+    const data = {
+        merk: '{{ gadai.merk_hp }}',
+        tipe: '{{ gadai.tipe_hp }}',
+        ram: '{{ gadai.ram }}',
+        penyimpanan: '{{ gadai.penyimpanan }}',
+        tahun: '{{ gadai.tahun_keluaran }}',
+        kondisi: '{{ gadai.kondisi }}',
+        estimasi: '{{ gadai.estimasi_pinjaman }}'
+    };
+    qr.addData(JSON.stringify(data));
+    qr.make();
+    document.getElementById('qrcode').innerHTML = qr.createImgTag(4);
+});
+</script>
+
+<style>
+/* Menggunakan warna yang sama dengan navbar */
+:root {
+    --navbar-blue: #3498db;  /* Warna biru navbar */
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Header utama */
+.header-section {
+    background: var(--navbar-blue);
+    padding: 1rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+/* Header sections */
+.section-header {
+    background: var(--navbar-blue);
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.content-section {
+    height: 100%;
+    background: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+.content-body {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-top: none;
+    border-radius: 0 0 0.5rem 0.5rem;
+    padding: 1.25rem;
+}
+.info-box {
+    background-color: #E3F2FD;
+    border: 1px solid #90CAF9;
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+.info-content {
+    display: flex;
+    align-items: start;
+}
+.estimasi-box {
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    margin-top: 1rem;
+}
+.estimasi-title {
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+.estimasi-value {
+    background: #fff;
+    padding: 1.25rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+.warning-box {
+    background-color: #FFF3E0;
+    border: 1px solid #FFE0B2;
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+.warning-content {
+    display: flex;
+    align-items: start;
+}
+.table td {
+    padding: 0.5rem 0;
+    border: none;
+}
+.text-primary {
+    color: #2196F3 !important;
+}
+
+.btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.modal-header.bg-success {
+    background-color: #28a745;
+}
+
+.text-success {
+    color: #28a745 !important;
+}
+
+@media print {
+    .btn, .warning-box {
+        display: none !important;
+    }
+    .card {
+        box-shadow: none !important;
+    }
+    .content-section {
+        box-shadow: none !important;
+    }
+}
+</style>
+{% endblock %} 

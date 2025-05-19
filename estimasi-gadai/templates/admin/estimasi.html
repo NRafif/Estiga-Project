@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Kelola Estimasi - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">Daftar Pengajuan Estimasi</h2>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle shadow-sm rounded">
+            <thead class="table-primary">
+                <tr>
+                    <th>ID</th>
+                    <th>Nama Pemohon</th>
+                    <th>Merk & Tipe HP</th>
+                    <th>Spesifikasi</th>
+                    <th>Estimasi</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for estimasi in estimasi_list %}
+                <tr data-id="{{ estimasi.id }}">
+                    <td>{{ estimasi.id }}</td>
+                    <td>{{ estimasi.nama_pemohon }}</td>
+                    <td>{{ estimasi.merk_hp }} {{ estimasi.tipe_hp }}</td>
+                    <td>
+                        RAM: {{ estimasi.ram }}GB<br>
+                        Storage: {{ estimasi.penyimpanan }}GB<br>
+                        Tahun: {{ estimasi.tahun_keluaran }}<br>
+                        Kondisi: {{ estimasi.kondisi }}
+                    </td>
+                    <td>Rp {{ "{:,.0f}".format(estimasi.estimasi_pinjaman) }}</td>
+                    <td>
+                        {% if estimasi.status == 'pending' %}
+                        <span class="badge bg-warning text-dark px-3 py-2 shadow-sm">Menunggu Persetujuan</span>
+                        {% elif estimasi.status == 'verified' %}
+                        <span class="badge bg-success px-3 py-2 shadow-sm">Disetujui</span>
+                        {% else %}
+                        <span class="badge bg-danger px-3 py-2 shadow-sm">Ditolak</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-info btn-detail" title="Lihat Detail" data-bs-toggle="tooltip" data-bs-placement="top">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Detail -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detail Estimasi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detailContent">
+                Loading...
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.querySelector('table');
+    
+    // Event delegation untuk tombol detail
+    table.addEventListener('click', function(e) {
+        const detailBtn = e.target.closest('.btn-detail');
+        if (!detailBtn) return;
+        
+        const row = detailBtn.closest('tr');
+        const id = row.dataset.id;
+        lihatDetail(id);
+    });
+});
+
+function lihatDetail(id) {
+    const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+    const content = document.getElementById('detailContent');
+    
+    content.innerHTML = 'Loading...';
+    modal.show();
+    
+    fetch(`/api/estimasi/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            const statusBadge = getStatusBadge(data.status);
+            content.innerHTML = `
+                <dl class="row">
+                    <dt class="col-sm-4">Nama Pemohon</dt>
+                    <dd class="col-sm-8">${data.nama_pemohon}</dd>
+                    
+                    <dt class="col-sm-4">Merk & Tipe</dt>
+                    <dd class="col-sm-8">${data.merk_hp} ${data.tipe_hp}</dd>
+                    
+                    <dt class="col-sm-4">RAM</dt>
+                    <dd class="col-sm-8">${data.ram}GB</dd>
+                    
+                    <dt class="col-sm-4">Penyimpanan</dt>
+                    <dd class="col-sm-8">${data.penyimpanan}GB</dd>
+                    
+                    <dt class="col-sm-4">Tahun</dt>
+                    <dd class="col-sm-8">${data.tahun_keluaran}</dd>
+                    
+                    <dt class="col-sm-4">Kondisi</dt>
+                    <dd class="col-sm-8">${data.kondisi}</dd>
+                    
+                    <dt class="col-sm-4">Estimasi</dt>
+                    <dd class="col-sm-8">Rp ${data.estimasi_pinjaman.toLocaleString()}</dd>
+                    
+                    <dt class="col-sm-4">Status</dt>
+                    <dd class="col-sm-8">${statusBadge}</dd>
+                    
+                    ${data.catatan_verifikasi ? `
+                    <dt class="col-sm-4">Catatan Admin</dt>
+                    <dd class="col-sm-8">${data.catatan_verifikasi}</dd>
+                    ` : ''}
+                </dl>
+            `;
+        })
+        .catch(error => {
+            content.innerHTML = 'Gagal memuat data';
+            console.error('Error:', error);
+        });
+}
+
+function getStatusBadge(status) {
+    const badges = {
+        'pending': '<span class="badge bg-warning">Menunggu Persetujuan</span>',
+        'verified': '<span class="badge bg-success">Disetujui</span>',
+        'rejected': '<span class="badge bg-danger">Ditolak</span>'
+    };
+    return badges[status] || `<span class="badge bg-secondary">${status}</span>`;
+}
+</script>
+
+<style>
+.table {
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background: #fff;
+}
+.table thead th {
+    border-bottom: 2px solid #e3e6f0;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+.table-hover tbody tr:hover {
+    background-color: #eaf4ff;
+    transition: background 0.2s;
+}
+.badge {
+    font-size: 0.95rem;
+    padding: 0.5em 1.2em;
+    border-radius: 0.7em;
+}
+.btn-detail {
+    background: #e3f2fd;
+    color: #1976d2;
+    border: none;
+    transition: background 0.2s, color 0.2s;
+}
+.btn-detail:hover {
+    background: #1976d2;
+    color: #fff;
+}
+.modal-content {
+    border-radius: 1rem;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+</style>
+{% endblock %} 

@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Verifikasi Pengajuan - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">Daftar Pengajuan Menunggu Verifikasi</h2>
+
+    <div class="table-responsive">
+        {% if pengajuan_pending|length == 0 %}
+        <div class="d-flex flex-column align-items-center justify-content-center py-5">
+            <div style="width:100px;height:100px;background:#4CAF50;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="12" fill="#4CAF50"/>
+                    <path d="M7 13.5L10.5 17L17 10.5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="mt-4 text-center">
+                <h4 class="text-success">Tidak ada barang yang akan diverifikasi</h4>
+            </div>
+        </div>
+        {% else %}
+        <table class="table table-striped table-hover align-middle shadow-sm rounded">
+            <thead class="table-primary">
+                <tr>
+                    <th>ID</th>
+                    <th>Tanggal</th>
+                    <th>Nama Pemohon</th>
+                    <th>Merk & Tipe HP</th>
+                    <th>Spesifikasi</th>
+                    <th>Estimasi</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pengajuan in pengajuan_pending %}
+                <tr data-id="{{ pengajuan.id }}">
+                    <td>{{ pengajuan.id }}</td>
+                    <td>{{ pengajuan.tanggal_gadai.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ pengajuan.nama_pemohon }}</td>
+                    <td>{{ pengajuan.merk_hp }} {{ pengajuan.tipe_hp }}</td>
+                    <td>
+                        RAM: {{ pengajuan.ram }}GB<br>
+                        Storage: {{ pengajuan.penyimpanan }}GB<br>
+                        Tahun: {{ pengajuan.tahun_keluaran }}<br>
+                        Kondisi: {{ pengajuan.kondisi }}
+                    </td>
+                    <td>Rp {{ "{:,.0f}".format(pengajuan.estimasi_pinjaman) }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-success btn-approve" title="Setujui">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger btn-reject" title="Tolak">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal Persetujuan -->
+<div class="modal fade" id="approveModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Setujui Pengajuan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="approveForm">
+                    <div class="mb-3">
+                        <label for="catatan" class="form-label">Catatan Verifikasi</label>
+                        <textarea class="form-control" id="catatan" name="catatan" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-success" id="submitApprove">Setujui</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Penolakan -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tolak Pengajuan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="rejectForm">
+                    <div class="mb-3">
+                        <label for="alasan" class="form-label">Alasan Penolakan</label>
+                        <textarea class="form-control" id="alasan" name="alasan" rows="3" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-danger" id="submitReject">Tolak</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.querySelector('table');
+    let currentId = null;
+    const approveModal = new bootstrap.Modal(document.getElementById('approveModal'));
+    const rejectModal = new bootstrap.Modal(document.getElementById('rejectModal'));
+
+    // Event delegation untuk tombol aksi
+    table.addEventListener('click', function(e) {
+        const row = e.target.closest('tr');
+        if (!row) return;
+        
+        currentId = row.dataset.id;
+        
+        if (e.target.closest('.btn-approve')) {
+            approveModal.show();
+        } else if (e.target.closest('.btn-reject')) {
+            rejectModal.show();
+        }
+    });
+
+    // Handle persetujuan
+    document.getElementById('submitApprove').addEventListener('click', function() {
+        const catatan = document.getElementById('catatan').value;
+        
+        fetch(`/admin/verifikasi/setuju/${currentId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ catatan: catatan })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Gagal memproses persetujuan: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat memproses persetujuan');
+        });
+    });
+
+    // Handle penolakan
+    document.getElementById('submitReject').addEventListener('click', function() {
+        const alasan = document.getElementById('alasan').value;
+        if (!alasan.trim()) {
+            alert('Mohon isi alasan penolakan');
+            return;
+        }
+        
+        fetch(`/admin/verifikasi/tolak/${currentId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ alasan: alasan })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Gagal memproses penolakan: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat memproses penolakan');
+        });
+    });
+});
+</script>
+
+<style>
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    margin: 0 0.25rem;
+}
+.table td {
+    vertical-align: middle;
+}
+.modal-dialog {
+    max-width: 500px;
+}
+</style>
+{% endblock %} 

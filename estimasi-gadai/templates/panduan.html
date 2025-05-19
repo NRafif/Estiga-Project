@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Panduan - Estimasi Gadai{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Panduan Penggunaan</h1>
+    
+    <!-- Accordion untuk FAQ -->
+    <div class="accordion" id="faqAccordion">
+        <!-- Cara Penggunaan -->
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#caraPenggunaan">
+                    <i class="fas fa-book me-2"></i>Cara Penggunaan Aplikasi
+                </button>
+            </h2>
+            <div id="caraPenggunaan" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    <ol>
+                        <li>Daftar atau login ke akun Anda</li>
+                        <li>Pilih menu "Estimasi" untuk memulai perhitungan</li>
+                        <li>Isi formulir dengan data barang yang akan digadai</li>
+                        <li>Sistem akan menampilkan estimasi nilai pinjaman</li>
+                        <li>Anda dapat melihat riwayat estimasi di menu "Riwayat"</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- Proses Pengajuan -->
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#prosesPengajuan">
+                    <i class="fas fa-clipboard-list me-2"></i>Proses Pengajuan Gadai
+                </button>
+            </h2>
+            <div id="prosesPengajuan" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    <ol>
+                        <li>Lakukan estimasi nilai barang melalui sistem</li>
+                        <li>Hubungi petugas melalui menu "Hubungi Kami"</li>
+                        <li>Buat janji temu dengan petugas</li>
+                        <li>Bawa barang dan dokumen yang diperlukan</li>
+                        <li>Petugas akan melakukan verifikasi barang</li>
+                        <li>Jika disetujui, proses pencairan dana akan dilakukan</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq">
+                    <i class="fas fa-question-circle me-2"></i>Pertanyaan Umum (FAQ)
+                </button>
+            </h2>
+            <div id="faq" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    <div class="mb-3">
+                        <h5>Apa saja barang yang bisa digadai?</h5>
+                        <p>Kami menerima gadai emas, perhiasan, dan logam mulia dengan kadar minimal 16 karat.</p>
+                    </div>
+                    <div class="mb-3">
+                        <h5>Berapa lama proses pencairan dana?</h5>
+                        <p>Setelah verifikasi barang selesai, dana dapat cair dalam waktu 1-2 jam kerja.</p>
+                    </div>
+                    <div class="mb-3">
+                        <h5>Apakah estimasi di sistem sudah pasti?</h5>
+                        <p>Estimasi di sistem adalah perkiraan awal. Nilai final akan ditentukan setelah verifikasi fisik barang oleh petugas.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Informasi Kontak -->
+    <div class="mt-4">
+        <h3>Butuh Bantuan?</h3>
+        <p>Jika Anda memiliki pertanyaan lebih lanjut, silakan hubungi kami melalui:</p>
+        <ul class="list-unstyled">
+            <li><i class="fas fa-phone me-2"></i>Telepon: (021) 1234567</li>
+            <li><i class="fas fa-envelope me-2"></i>Email: bantuan@estimasigadai.com</li>
+            <li><i class="fas fa-clock me-2"></i>Jam Kerja: Senin-Jumat, 08.00-16.00 WIB</li>
+        </ul>
+    </div>
+</div>
+{% endblock %} 

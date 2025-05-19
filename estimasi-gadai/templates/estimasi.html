@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}Estimasi - Sistem Estimasi Gadai{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Estimasi Gadai Handphone</h2>
+    
+    <div class="card shadow">
+        <div class="card-body">
+            <form id="estimasiForm" method="POST" action="{{ url_for('estimasi') }}">
+                <div class="mb-3">
+                    <label for="nama" class="form-label">Nama Pemohon</label>
+                    <input type="text" class="form-control" id="nama" name="nama" required>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="merk" class="form-label">Merk HP</label>
+                        <input type="text" class="form-control" id="merk" name="merk" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="tipe" class="form-label">Tipe HP</label>
+                        <input type="text" class="form-control" id="tipe" name="tipe" required>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="ram" class="form-label">RAM (GB)</label>
+                        <input type="number" class="form-control" id="ram" name="ram" min="1" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="penyimpanan" class="form-label">Penyimpanan (GB)</label>
+                        <input type="number" class="form-control" id="penyimpanan" name="penyimpanan" min="1" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="tahun" class="form-label">Tahun Keluaran</label>
+                        <input type="number" class="form-control" id="tahun" name="tahun" min="2010" max="2024" required>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="harga_beli" class="form-label">Harga Beli (Rp)</label>
+                        <input type="text" class="form-control" id="harga_beli" name="harga_beli" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="kondisi" class="form-label">Kondisi (%)</label>
+                        <select class="form-select" id="kondisi" name="kondisi" required>
+                            <option value="">Pilih kondisi...</option>
+                            <option value="100%">100% (Seperti Baru)</option>
+                            <option value="90%">90% (Sangat Baik)</option>
+                            <option value="80%">80% (Baik)</option>
+                            <option value="70%">70% (Cukup Baik)</option>
+                            <option value="60%">60% (Kurang Baik)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-grid">
+                    <button type="button" class="btn btn-primary" onclick="showConfirmation()">
+                        <i class="fas fa-calculator me-2"></i>HITUNG ESTIMASI
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Konfirmasi -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="confirmationModalLabel">Konfirmasi Data</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6 class="mb-3">Mohon periksa kembali data yang diinput:</h6>
+                <div class="confirmation-data mb-4">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td width="40%"><strong>Nama Pemohon</strong></td>
+                            <td>: <span id="confirm-nama"></span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Merk HP</strong></td>
+                            <td>: <span id="confirm-merk"></span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tipe HP</strong></td>
+                            <td>: <span id="confirm-tipe"></span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>RAM</strong></td>
+                            <td>: <span id="confirm-ram"></span> GB</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Penyimpanan</strong></td>
+                            <td>: <span id="confirm-penyimpanan"></span> GB</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tahun Keluaran</strong></td>
+                            <td>: <span id="confirm-tahun"></span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Harga Beli</strong></td>
+                            <td>: Rp <span id="confirm-harga"></span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Kondisi</strong></td>
+                            <td>: <span id="confirm-kondisi"></span></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="confirmCheck" required>
+                    <label class="form-check-label" for="confirmCheck">
+                        Data yang dimasukkan sudah sesuai
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ubah Data</button>
+                <button type="button" class="btn btn-primary" id="submitBtn" disabled onclick="submitForm()">
+                    Hitung Estimasi
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+// Format number to currency
+function formatCurrency(number) {
+    // Bersihkan string dari karakter non-digit
+    const cleanNumber = number.toString().replace(/\D/g, '');
+    return new Intl.NumberFormat('id-ID').format(cleanNumber);
+}
+
+// Show confirmation modal with form data
+function showConfirmation() {
+    // Get form data
+    const nama = document.getElementById('nama').value;
+    const merk = document.getElementById('merk').value;
+    const tipe = document.getElementById('tipe').value;
+    const ram = document.getElementById('ram').value;
+    const penyimpanan = document.getElementById('penyimpanan').value;
+    const tahun = document.getElementById('tahun').value;
+    const harga = document.getElementById('harga_beli').value;
+    const kondisi = document.getElementById('kondisi').value;
+
+    // Validate form
+    if (!nama || !merk || !tipe || !ram || !penyimpanan || !tahun || !harga || !kondisi) {
+        alert('Mohon lengkapi semua data terlebih dahulu');
+        return;
+    }
+
+    // Update confirmation modal with form data
+    document.getElementById('confirm-nama').textContent = nama;
+    document.getElementById('confirm-merk').textContent = merk;
+    document.getElementById('confirm-tipe').textContent = tipe;
+    document.getElementById('confirm-ram').textContent = ram;
+    document.getElementById('confirm-penyimpanan').textContent = penyimpanan;
+    document.getElementById('confirm-tahun').textContent = tahun;
+    document.getElementById('confirm-harga').textContent = harga; // Tampilkan langsung nilai yang sudah terformat
+    document.getElementById('confirm-kondisi').textContent = kondisi;
+
+    // Reset checkbox
+    document.getElementById('confirmCheck').checked = false;
+    document.getElementById('submitBtn').disabled = true;
+
+    // Show modal
+    new bootstrap.Modal(document.getElementById('confirmationModal')).show();
+}
+
+// Enable/disable submit button based on checkbox
+document.getElementById('confirmCheck').addEventListener('change', function() {
+    document.getElementById('submitBtn').disabled = !this.checked;
+});
+
+// Submit form
+async function submitForm() {
+    if (document.getElementById('confirmCheck').checked) {
+        try {
+            // Tampilkan loading state
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Memproses...';
+            
+            // Bersihkan format harga sebelum submit
+            const hargaInput = document.getElementById('harga_beli');
+            const cleanHarga = hargaInput.value.replace(/\D/g, '');
+            hargaInput.value = cleanHarga;
+            
+            // Submit form
+            document.getElementById('estimasiForm').submit();
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat memproses data. Silakan coba lagi.');
+            
+            // Reset button state
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    }
+}
+
+// Format currency input
+document.getElementById('harga_beli').addEventListener('input', function(e) {
+    // Remove non-digits
+    let value = this.value.replace(/\D/g, '');
+    // Format number
+    if (value) {
+        this.value = formatCurrency(value);
+    }
+});
+
+// Validasi form sebelum submit
+document.getElementById('estimasiForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Validasi semua field
+    const fields = ['nama', 'merk', 'tipe', 'ram', 'penyimpanan', 'tahun', 'harga_beli', 'kondisi'];
+    let isValid = true;
+    
+    fields.forEach(field => {
+        const input = document.getElementById(field);
+        if (!input.value.trim()) {
+            isValid = false;
+            input.classList.add('is-invalid');
+        } else {
+            input.classList.remove('is-invalid');
+        }
+    });
+    
+    // Validasi khusus untuk field numerik
+    const ram = parseInt(document.getElementById('ram').value);
+    const penyimpanan = parseInt(document.getElementById('penyimpanan').value);
+    const tahun = parseInt(document.getElementById('tahun').value);
+    const currentYear = new Date().getFullYear();
+    
+    if (ram < 1) {
+        isValid = false;
+        document.getElementById('ram').classList.add('is-invalid');
+    }
+    if (penyimpanan < 1) {
+        isValid = false;
+        document.getElementById('penyimpanan').classList.add('is-invalid');
+    }
+    if (tahun < 2010 || tahun > currentYear) {
+        isValid = false;
+        document.getElementById('tahun').classList.add('is-invalid');
+    }
+    
+    if (isValid) {
+        // Jika semua valid, lanjutkan submit
+        this.submit();
+    } else {
+        alert('Mohon periksa kembali data yang dimasukkan');
+    }
+});
+</script>
+{% endblock %}
+
+<style>
+.modal-dialog {
+    max-width: 600px;
+}
+.confirmation-data {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+.confirmation-data .table td {
+    padding: 0.5rem 0;
+}
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+</style>
+{% endblock %} 
